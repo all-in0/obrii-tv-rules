@@ -193,16 +193,21 @@ def tv_ultimate_oscillator_rule(uo: float) -> int:
     return 0
 
 
-def tv_group_rating(values: list[int]) -> float:
-    """``array.avg`` of a group's +1/0/-1 values; 0.0 for an empty group."""
-    if not values:
-        return 0.0
-    return sum(values) / len(values)
+def tv_group_rating(values: list[Optional[int]]) -> Optional[float]:
+    """``array.avg`` of a group's +1/0/-1 values; a ``None`` member is
+    Pine's ``na`` and is left out; ``None`` when no member is defined."""
+    defined = [v for v in values if v is not None]
+    if not defined:
+        return None
+    return sum(defined) / len(defined)
 
 
-def tv_overall_rating(ma_rating: float, oscillator_rating: float) -> float:
-    """``(ratingMA + ratingOther) / 2``."""
-    return (ma_rating + oscillator_rating) / 2
+def tv_overall_rating(ma_rating: Optional[float], oscillator_rating: Optional[float]) -> Optional[float]:
+    """``calcRatingAll()``'s switch: the mean of both groups when both are
+    defined, the one defined group alone otherwise, ``None`` when neither."""
+    if ma_rating is not None and oscillator_rating is not None:
+        return (ma_rating + oscillator_rating) / 2
+    return ma_rating if ma_rating is not None else oscillator_rating
 
 
 def tv_rating_status(rating: float) -> int:

@@ -198,16 +198,24 @@ int tvUltimateOscillatorRule(double uo) {
   return 0;
 }
 
-/// A group's rating: the mean of its members' +1/0/-1 values
-/// (`array.avg`); 0 for an empty group.
-double tvGroupRating(List<int> values) {
-  if (values.isEmpty) return 0;
-  return values.fold<int>(0, (a, b) => a + b) / values.length;
+/// A group's rating: `array.avg` of its members' +1/0/-1 values, where a
+/// `null` member is Pine's `na` (its gate is undefined) and is left out of
+/// the mean; `null` (`na`) when no member is defined.
+double? tvGroupRating(List<int?> values) {
+  final defined = values.whereType<int>().toList();
+  if (defined.isEmpty) return null;
+  return defined.fold<int>(0, (a, b) => a + b) / defined.length;
 }
 
-/// The overall rating: `(ratingMA + ratingOther) / 2`.
-double tvOverallRating(double maRating, double oscillatorRating) =>
-    (maRating + oscillatorRating) / 2;
+/// The overall rating, as `calcRatingAll()`'s `switch`: the mean of both
+/// groups when both are defined, the one defined group alone otherwise,
+/// `null` (`na`) when neither is.
+double? tvOverallRating(double? maRating, double? oscillatorRating) {
+  if (maRating != null && oscillatorRating != null) {
+    return (maRating + oscillatorRating) / 2;
+  }
+  return maRating ?? oscillatorRating;
+}
 
 /// `ratingStatus()` with its default bounds, as -2 (Strong Sell), -1
 /// (Sell), 0 (Neutral), 1 (Buy), 2 (Strong Buy).
